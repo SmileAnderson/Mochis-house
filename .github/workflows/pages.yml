@@ -19,7 +19,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir site && cp index.html site/ && if [ -d music ]; then cp -r music site/; fi
+      - run: mkdir site && cp index.html site/ && for d in music lib; do if [ -d $d ]; then cp -r $d site/; fi; done
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
