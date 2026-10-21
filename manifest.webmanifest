@@ -1,0 +1,18 @@
+{
+  "name": "Mochi's House",
+  "short_name": "Mochi's House",
+  "description": "A cosy pixel-art planner for uni, meals and chores, with Mochi the cat.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF5F8",
+  "theme_color": "#FFD3E5",
+  "categories": ["productivity", "education", "lifestyle"],
+  "icons": [
+    { "src": "lib/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "lib/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "lib/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
