@@ -1554,6 +1554,35 @@ html,body{overflow-x:clip}
 .lvhouse canvas{position:absolute;right:12%;bottom:8px;width:64px;height:64px;image-rendering:pixelated}
 .lvsay{position:absolute;right:6%;bottom:80px;left:auto;top:auto;transform:none;background:var(--paper);color:var(--ink);border:1.5px solid var(--line2);border-radius:14px;padding:6px 10px;font:600 13px/1.2 var(--f-body);white-space:nowrap;box-shadow:0 8px 18px -12px rgba(0,0,0,.4)}
 .lvbye{margin-top:6px;font-size:12px;color:var(--muted)}
+/* Reader: notebook PDFs and pictures inside the app */
+.reader{position:fixed;inset:0;z-index:140;display:flex;flex-direction:column;background:var(--bg)}
+.reader[hidden]{display:none}
+.rdrbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line2);background:var(--paper)}
+.rdrname{flex:1;min-width:0;font:700 15px var(--f-display);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rdrbtn{padding:5px 12px;font-size:13px;white-space:nowrap}
+.rdrbtn[hidden]{display:none}
+.rdrbody{position:relative;flex:1;min-height:0}
+.rdrbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--paper)}
+.rdrwait{position:absolute;left:0;right:0;top:40%;text-align:center;pointer-events:none}
+.rdrwait[hidden]{display:none}
+@media (max-width:640px){ .rdrbar{flex-wrap:wrap} .rdrname{flex-basis:100%} #rdrOut{flex:1} }
+
+/* Mini focus timer: floats over everything while a round is going, drag it anywhere */
+.minift{position:fixed;z-index:150;left:0;top:0;min-width:208px;background:var(--paper);color:var(--ink);border:2px solid var(--rose);border-radius:14px;
+  box-shadow:0 14px 32px -16px rgba(120,0,60,.55);padding:6px 8px 7px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.minift[hidden]{display:none}
+.minift.drag{cursor:grabbing;opacity:.92}
+.minift.brk{border-color:var(--lilac-ink)}
+.mfrow{display:flex;align-items:center;gap:6px}
+.mfgrip{color:var(--muted);font-size:12px;letter-spacing:-2px;padding:0 2px}
+.mftime{border:none;background:none;padding:0;color:var(--ink);font:700 22px var(--f-display);font-variant-numeric:tabular-nums;cursor:var(--curp,pointer)}
+.mfmode{flex:1;font-size:12px;color:var(--muted)}
+.mfbtn{width:28px;height:28px;display:grid;place-items:center;border-radius:999px;border:1px solid var(--line2);background:var(--bg);color:var(--ink);font-size:12px;padding:0;cursor:var(--curp,pointer)}
+.mfbtn:hover{border-color:var(--rose)}
+.mfbar{height:5px;margin-top:6px;border-radius:999px;background:var(--rose-soft);overflow:hidden}
+.mfbar i{display:block;height:100%;width:0;background:var(--rose);border-radius:999px;transition:width .25s linear}
+.minift.brk .mfbar{background:var(--lilac)}
+.minift.brk .mfbar i{background:var(--lilac-ink)}
 /* the notebook */
 .nbgrid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
 .nbside{position:sticky;top:96px;max-height:calc(100dvh - 120px);overflow:auto;display:flex;flex-direction:column;gap:10px}
@@ -1767,7 +1796,7 @@ html,body{overflow-x:clip}
         <button role="menuitem" type="button" id="phoneMenu" hidden><span class="mi">▯</span>Put it on your phone</button>
         <button role="menuitem" type="button" data-open="fbPanel" id="fbMenu" hidden><span class="mi">✐</span>Send feedback</button>
         <button role="menuitem" type="button" id="updCheck" hidden><span class="mi">↻</span>Check for updates</button>
-        <div class="mver">Mochi's house · v1.12.10</div>
+        <div class="mver">Mochi's house · v1.12.11</div>
       </div>
     </div>
   </nav>
@@ -1777,8 +1806,21 @@ html,body{overflow-x:clip}
     <div class="ltrack"><canvas id="loadPaw" width="14" height="10"></canvas></div>
     <div class="lbar"><i></i></div>
     <div class="ltxt"><span id="loadTxt">opening the door to Mochi's house</span><span class="ldots"><i>.</i><i>.</i><i>.</i></span></div>
+    <div class="ltxt" id="loadErr" hidden style="max-width:520px;font-size:12px;opacity:.75;white-space:pre-wrap;user-select:text"></div>
   </div>
 </div>
+<script>
+// safety net: the loading screen can never stay up forever. It runs before the rest of the app,
+// so even if something breaks while the house is opening, the loader still goes away and the
+// error is shown (and remembered) so it can be fixed.
+(function(){ var errs=[];
+  function lift(){ var l=document.getElementById("loader"); if(!l||l.hidden) return; l.classList.add("done"); setTimeout(function(){ l.hidden=true; },600); }
+  window.__mochiBootErr=function(e){ var m=(e&&(e.stack||e.message))||String(e); errs.push(m); try{ console.error("Mochi's House start-up error",e); localStorage.setItem("mochiLastError",JSON.stringify({t:new Date().toISOString(),m:m.slice(0,2000)})); }catch(_){}
+    var el=document.getElementById("loadErr"); if(el){ el.hidden=false; el.textContent="Something went wrong while opening the house:\n"+m.split("\n").slice(0,3).join("\n"); } };
+  window.addEventListener("error",function(ev){ window.__mochiBootErr(ev.error||ev.message); setTimeout(lift,4000); });
+  window.addEventListener("unhandledrejection",function(ev){ try{ console.warn("Mochi's House: unhandled",ev.reason); }catch(_){} });
+  setTimeout(lift,8000); })();
+</script>
 <div class="subnav" id="subnav" hidden>
   <button class="backbtn" type="button" id="backBtn" aria-label="Back to Mochi's house">← <span>Mochi's house</span></button>
   <div class="tabs" role="tablist" aria-label="Room pages" id="subTabs"></div>
@@ -3060,9 +3102,32 @@ html,body{overflow-x:clip}
     </section>
   </div>
 </div>
+
+<!-- reading: PDFs and pictures from the notebook open right here, inside the house -->
+<div class="reader" id="reader" hidden role="dialog" aria-label="Reading">
+  <div class="rdrbar">
+    <span class="rdrname" id="rdrName"></span>
+    <button type="button" class="ghost rdrbtn" id="rdrFocus" hidden>◷ Start focusing</button>
+    <button type="button" class="ghost rdrbtn" id="rdrOut">Open outside the app</button>
+    <button type="button" class="ghost rdrbtn rdrx" id="rdrClose" aria-label="Close the reader">✕</button>
+  </div>
+  <div class="rdrbody"><iframe id="rdrFrame" title="Reading"></iframe><p class="hint rdrwait" id="rdrWait">opening your file…</p></div>
+</div>
+
+<!-- the little focus timer that floats over the house while a round is going -->
+<div class="minift" id="miniFT" hidden role="group" aria-label="Focus timer">
+  <div class="mfrow">
+    <span class="mfgrip" aria-hidden="true">⋮⋮</span>
+    <button type="button" class="mftime" id="mfTime" title="Open the focus timer">25:00</button>
+    <span class="mfmode" id="mfMode">focus</span>
+    <button type="button" class="mfbtn" id="mfGo" aria-label="Pause">❚❚</button>
+    <button type="button" class="mfbtn" id="mfHide" aria-label="Hide the mini timer" title="Hide (it comes back next time you leave the focus timer)">–</button>
+  </div>
+  <div class="mfbar"><i id="mfBar"></i></div>
+</div>
 <script>
 (function(){
-const APP_VERSION="1.12.10";
+const APP_VERSION="1.12.11";
 const DAYMS=864e5;
 const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 const DOWL=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -3082,7 +3147,7 @@ const TEMPLATES={
 };
 const DEFAULTS={weekdayHours:3,fridayHours:null,sessionHours:1.5,saturday:false,satHours:2,catName:"Mochi"};
 
-let state={assignments:[],settings:{...DEFAULTS},events:[],calMeta:null,notes:[],grades:{},kitchen:{favs:[],plan:{},pantry:[]}};
+let state={assignments:[],settings:{...DEFAULTS},events:[],calMeta:null,notes:{},grades:{},kitchen:{favs:[],plan:{},pantry:[]}};
 let view="month", cursor=null, selected=null, db=null;
 const $=id=>document.getElementById(id);
 
@@ -3097,7 +3162,8 @@ const daysUntil=s=>Math.round((parseYmd(s)-today())/DAYMS);
 const fmtH=h=>(Math.round(h*10)/10)+"h";
 const toMin=t=>{const[a,b]=t.split(":").map(Number);return a*60+b};
 cursor=today(); selected=ymd(today());
-
+// how often a chore repeats (needed early: the planner shows chores on the first draw)
+const CH_EVERY=[[1,"every day"],[3,"every 3 days"],[7,"every week"],[14,"every 2 weeks"],[21,"every 3 weeks"],[30,"every month"],[60,"every 2 months"],[90,"every 3 months"]];
 // ---------- cloud sync settings ----------
 // Fill these in from Supabase → Project Settings → API (see README → "Cloud sync").
 // Both values are meant to be public: the database only lets each signed-in
@@ -3843,8 +3909,8 @@ function renderDay(){
 let toastT;
 function toast(msg){const el=$("toast");el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2200)}
 window.mochiToast=toast; // for the desktop updater, which runs outside this function
-function localSave(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){}}
-function localLoad(){try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"null");if(s)state={...state,...s,settings:{...DEFAULTS,...(s.settings||{})}}}catch(e){}}
+function localSave(){try{if(Array.isArray(state.notes))state.notes={};localStorage.setItem(LS_KEY,JSON.stringify(state));localStorage.setItem("mochiLocalAt:"+LS_KEY,String(Date.now()))}catch(e){}}
+function localLoad(){try{const s=JSON.parse(localStorage.getItem(LS_KEY)||"null");if(s){state={...state,...s,settings:{...DEFAULTS,...(s.settings||{})}};if(Array.isArray(state.notes))state.notes={}}}catch(e){}}
 const stripId=a=>{const o={...a};delete o.id;return o};
 async function saveAssignment(a){
   if(db){ await db.collection("assignments").doc(a.id).set(stripId(a)); }
@@ -3978,7 +4044,7 @@ document.addEventListener("input",e=>{ const t=e.target; if(!t.matches) return;
 // about capitals. A link to a page that doesn't exist yet creates it when you open it.
 const NB={cur:null,mode:null,q:"",view:"page",t:null,sugAt:-1,sugSel:0,dirty:false};
 const NB_MAX=50000;
-function NOTES(){ return state.notes||(state.notes={}); }
+function NOTES(){ if(!state.notes||Array.isArray(state.notes)) state.notes={}; return state.notes; }
 const nbLow=t=>String(t||"").trim().toLowerCase();
 function nbCourses(){ const s=new Set(state.assignments.map(a=>a.course).filter(Boolean)); Object.keys(((state.extras||{}).courseNotes)||{}).forEach(c=>{ if(c) s.add(c); }); return [...s].sort((a,b)=>a.localeCompare(b)); }
 function nbPages(){ const ex=state.extras||{}, cn=ex.courseNotes||{}, cf=ex.courseFiles||{};
@@ -4188,7 +4254,8 @@ async function nbAttach(key,files){ const t=nbFilesOf(key); if(!t) return; if(!p
   if(curTab==="notes"&&NB.cur){ nbDrawList(); const p=nbGet(NB.cur); if(p) nbDrawMeta(p); if(NB.view==="class") nbDrawClass(); } if(typeof render==="function") render(); }
 document.addEventListener("change",e=>{ const i=e.target.closest&&e.target.closest("[data-nbattach]"); if(!i||!i.files||!i.files.length) return; const fs=[...i.files]; i.value=""; nbAttach(i.dataset.nbattach,fs); });
 document.addEventListener("click",async e=>{ if(!e.target.closest) return;
-  const o=e.target.closest("[data-nbfile]"); if(o){ e.preventDefault(); const w=window.__TAURI__?null:window.open("about:blank","_blank"); try{ const u=await nbUrl(o.dataset.nbfile); if(w) w.location=u; else window.open(u,"_blank"); }catch(_){ if(w) w.close(); toast(patCloud()?"Couldn't open that file right now ✿":"Sign in to open your files ✿"); } return; }
+  const o=e.target.closest("[data-nbfile]"); if(o&&readerCan(o.dataset.nbfname||"")){ e.preventDefault(); try{ readerOpen(await nbUrl(o.dataset.nbfile),o.dataset.nbfname); }catch(_){ toast(patCloud()?"Couldn't open that file right now ✿":"Sign in to open your files ✿"); } return; }
+  if(o){ e.preventDefault(); const w=window.__TAURI__?null:window.open("about:blank","_blank"); try{ const u=await nbUrl(o.dataset.nbfile); if(w) w.location=u; else window.open(u,"_blank"); }catch(_){ if(w) w.close(); toast(patCloud()?"Couldn't open that file right now ✿":"Sign in to open your files ✿"); } return; }
   const d=e.target.closest("[data-nbfiledel]"); if(d){ if(d.dataset.sure!=="1"){ d.dataset.sure="1"; d.textContent="remove?"; d.classList.add("sure"); setTimeout(()=>{ if(d.isConnected){ d.dataset.sure=""; d.textContent="✕"; d.classList.remove("sure"); } },3000); return; }
     const t=nbFilesOf(d.dataset.nbkey); if(!t) return; const i=t.list.findIndex(f=>f.id===d.dataset.nbfiledel); if(i<0) return; const [f]=t.list.splice(i,1); t.save();
     try{ if(patCloud()) await patCloud().storage.from(PT_BUCKET).remove([f.path]); }catch(_){ }
@@ -4475,6 +4542,21 @@ $("fbForm").addEventListener("submit",async e=>{ e.preventDefault(); const msg=$
 // the menu says "Sign in to sync" until you're signed in (signing in later keeps your house and uploads it)
 function syncMenuLabel(){ const t=$("syncMenuTxt"); if(t) t.textContent=CLOUD.on&&!CLOUD.user?"Sign in to sync":"Sync & backup"; }
 setTimeout(syncMenuLabel,0); setInterval(syncMenuLabel,5000);
+// Things saved on this device while it wasn't connected (offline, signed out) are merged into the
+// account the next time it connects, instead of only when the account is empty. Nothing in the
+// account is overwritten: missing things are added, and moods, sleep, mood notes and pantry items
+// that only exist here are added in.
+function localSynced(){ try{ localStorage.setItem("mochiSyncedAt:"+LS_KEY,String(Date.now())); }catch(_){} }
+function localUnsynced(){ try{ if(!localStorage.getItem(LS_KEY)) return false; const at=+localStorage.getItem("mochiLocalAt:"+LS_KEY)||0, done=+localStorage.getItem("mochiSyncedAt:"+LS_KEY)||0; return !done||at>done; }catch(_){ return false; } }
+async function mergeLocalIntoCloud(){
+  if(!db||!localUnsynced()) return false; let n=0;
+  const local={}; try{ const s=JSON.parse(localStorage.getItem(LS_KEY)||"null"); if(!s) return false; const keep=state; state={...state,...s,notes:Array.isArray(s.notes)?{}:(s.notes||{})}; Object.assign(local,allDocs()); state=keep; }catch(_){ return false; }
+  for(const [p,d] of Object.entries(local)){ if(!d||typeof d!=="object"||p.startsWith("weather/")) continue;
+    const snap=await db.doc(p).get(), cur=snap.exists?snap.data():null;
+    if(!cur){ if(p==="settings/main") continue; await db.doc(p).set(d); n++; continue; }
+    if(p==="extras/main"){ let ch=false; const m={...cur}; ["mood","moodNote","sleep"].forEach(k=>{ const a=d[k]||{}, b=cur[k]||{}; const add=Object.keys(a).filter(x=>!(x in b)); if(add.length){ m[k]={...b}; add.forEach(x=>m[k][x]=a[x]); ch=true; } }); if(ch){ await db.doc(p).set(m); n++; } }
+    if(p==="kitchen/main"&&Array.isArray(d.pantry)){ const key=i=>String(i.n||"").trim().toLowerCase()+"|"+(i.s||""), have=new Set((cur.pantry||[]).map(i=>i.id)), names=new Set((cur.pantry||[]).map(key)), add=d.pantry.filter(i=>i&&!have.has(i.id)&&!names.has(key(i))); if(add.length){ await db.doc(p).set({...cur,pantry:[...(cur.pantry||[]),...add]}); n++; } } }
+  localSynced(); return n>0; }
 // ---------- signing in: password or email link, in one box ----------
 // Used on the welcome page and in ☰ → Sync & backup. Three ways in:
 //   Sign in (email + password) · Create account (email + password, confirmed by email once)
@@ -4524,8 +4606,11 @@ $("pwForm").addEventListener("submit",async e=>{ e.preventDefault(); const pw=$(
     $("pwMsg").textContent="Saved ✿"; toast("New password saved ✿"); setTimeout(()=>location.reload(),900); }
   catch(err){ $("pwMsg").textContent="Couldn't save it: "+(err&&err.message||"try again"); } });
 setTimeout(()=>{ try{ if(sessionStorage.getItem("mochiPwReset")==="1"&&CLOUD.user) askNewPassword(); }catch(_){} },3500);
-// boot
-localLoad(); usePet(petType()); fillSettings(); render(); applyLook();
+// boot: each step on its own, so one broken piece can't stop the whole house from opening.
+// If the first draw fails (something it needs isn't set up yet), it's tried again once everything has loaded.
+let bootDrawn=true;
+[()=>localLoad(), ()=>usePet(petType()), ()=>fillSettings(), ()=>render(), ()=>applyLook()].forEach((f,i)=>{ try{ f(); }catch(e){ if(i>=3) bootDrawn=false; window.__mochiBootErr&&window.__mochiBootErr(e); } });
+if(!bootDrawn) setTimeout(()=>{ try{ render(); applyLook(); const el=document.getElementById("loadErr"); if(el) el.hidden=true; }catch(e){ window.__mochiBootErr&&window.__mochiBootErr(e); } },0);
 // ---------- tabs, menu, modals ----------
 var curTab="home";
 const SECTIONS={study:[["sroom","Study"],["planner","Planner"],["notes","Notebook"],["focus","Focus timer"],["progress","Progress"],["grades","Grades"]],kitchen:[["kroom","Kitchen"],["cookbook","Cookbook"],["mealplan","Meal plan"],["pantry","Pantry & fridge"]],chores:[["lroom","Laundry room"],["chcal","Chore board"]],living:[["vroom","Living room"],["books","Bookshelf"],["knit","Knitting"]],bedroom:[["broom","Bedroom"],["trackers","Mood & sleep"],["shop","Pet shop"],["recap","Weekly recap"]],storage:[["store","Storage room"]],land:[["land","Mochi's Land"]]};
@@ -5683,7 +5768,7 @@ syncLamps(); setInterval(syncLamps,2000);
 // ---------- laundry room / chores ----------
 // ---------- chores ----------
 const CH_AREAS=[["all","All"],["laundry","Laundry"],["cleaning","Cleaning"],["kitchen","Kitchen"],["other","Other"]];
-const CH_EVERY=[[1,"every day"],[3,"every 3 days"],[7,"every week"],[14,"every 2 weeks"],[21,"every 3 weeks"],[30,"every month"],[60,"every 2 months"],[90,"every 3 months"]];
+// CH_EVERY lives in 00-core.js: the planner draws chores while the house is still opening
 const CH_DEF=[["Do the laundry","laundry",7,0,["Load 1","Load 2","Load 3","Load 4"]],["Do the ironing","laundry",7,0,["Hour 1","Hour 2","Hour 3"]],["Change bed sheets","laundry",14,0],["Wash towels","laundry",7,1],["Vacuum or sweep the floors","cleaning",7,0],["Mop the floors","cleaning",14,1],["Clean the bathroom","cleaning",7,0],["Dust shelves and desk","cleaning",14,1,["Desks","Tables","Counters","Shelves"]],["Clean mirrors and windows","cleaning",30,2],["Wipe kitchen counters and stove","kitchen",7,0],["Clean out the fridge","kitchen",30,3],["Grocery shopping","kitchen",7,0],["Take out trash and recycling","other",7,0],["Water the plants","other",7,0]];
 let chFilter="all", chChain=Promise.resolve();
 function CH(){ const c=state.chores||(state.chores={}); if(!Array.isArray(c.list)) c.list=[]; if(!Array.isArray(c.log)) c.log=[]; c.treats=c.treats||0; return c; }
@@ -5883,6 +5968,7 @@ let fSayIdx=0, fSayAt=0, fLastFrame="";
 function focusTick(){ if(FT.run&&Date.now()>=FT.endAt){ ftFinish(false); return; }
   const left=ftLeft(), tot=ftLen(FT.mode), brk=FT.mode!=="focus";
   const pill=$("focusPill"); if(pill){ const show=FT.run&&curTab!=="focus"; pill.hidden=!show; if(show){ pill.textContent=(brk?"◐ ":"◷ ")+ftFmt(left); pill.classList.toggle("brk",brk); } }
+  try{ miniTick(left,tot,brk); }catch(_){}
   document.title=FT.run?`${ftFmt(left)} · ${brk?"Break":"Focus"} · Mochi's house`:BASE_TITLE;
   if(curTab!=="focus") return;
   { const d=ymd(today()); if(focusTick.day&&focusTick.day!==d){ focusTick.day=d; renderFocus(); return; } focusTick.day=d; }
@@ -5965,6 +6051,67 @@ $("fCatBtn").addEventListener("click",()=>{ const st=fState(); fPokeSay(st); if(
 // staring: the pointer resting on him for a few seconds mid-round
 $("fCatBtn").addEventListener("pointerenter",()=>{ clearTimeout(fPoke.stare); fPoke.stare=setTimeout(()=>{ if(fState()==="focus") fPokeSay("focus"); },2500); });
 $("fCatBtn").addEventListener("pointerleave",()=>clearTimeout(fPoke.stare));
+// ---------- mini focus timer: floats over the house while a round is going ----------
+// Shows whenever the focus timer is running (or paused mid-round) and you're anywhere other than the
+// focus timer itself, including while reading a PDF. Drag it anywhere; the spot is remembered.
+// "–" hides it until the next time you leave the focus timer.
+const MF={x:null,y:null,hidden:false,wasFocus:false};
+try{ const s=JSON.parse(localStorage.getItem("mochiMiniFT")||"{}"); if(typeof s.x==="number") MF.x=s.x; if(typeof s.y==="number") MF.y=s.y; MF.hidden=!!s.hidden; }catch(_){}
+function mfSave(){ try{ localStorage.setItem("mochiMiniFT",JSON.stringify({x:MF.x,y:MF.y,hidden:MF.hidden})); }catch(_){} }
+function mfActive(){ return FT.run||(FT.left>0&&FT.left<ftLen(FT.mode)); }
+function readerIsOpen(){ const r=$("reader"); return !!r&&!r.hidden; }
+function mfPlace(){ const el=$("miniFT"); if(!el||el.hidden) return; const w=el.offsetWidth, h=el.offsetHeight, W=window.innerWidth, H=window.innerHeight;
+  let x=MF.x==null?W-w-18:MF.x*W, y=MF.y==null?H-h-18:MF.y*H; x=Math.max(6,Math.min(W-w-6,x)); y=Math.max(6,Math.min(H-h-6,y));
+  el.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`; }
+function miniTick(left,tot,brk){ const el=$("miniFT"); if(!el) return;
+  const onFocus=curTab==="focus"&&!readerIsOpen();
+  if(onFocus&&!MF.wasFocus&&MF.hidden){ MF.hidden=false; mfSave(); } MF.wasFocus=onFocus;
+  const show=mfActive()&&!onFocus&&!MF.hidden;
+  if(el.hidden===show){ el.hidden=!show; if(show) mfPlace(); }
+  const pill=$("focusPill"); if(pill&&show) pill.hidden=true;
+  if(!show) return;
+  $("mfTime").textContent=ftFmt(left); $("mfMode").textContent=FT.mode==="focus"?"focus":FT.mode==="short"?"short break":"long break";
+  const go=$("mfGo"), lbl=FT.run?"Pause":"Resume"; if(go.getAttribute("aria-label")!==lbl){ go.setAttribute("aria-label",lbl); go.textContent=FT.run?"❚❚":"▶"; }
+  el.classList.toggle("brk",brk); $("mfBar").style.width=(100*(1-left/Math.max(1,tot))).toFixed(1)+"%"; }
+$("mfGo").addEventListener("click",()=>{ if(FT.run) ftPause(); else ftStart(); });
+$("mfHide").addEventListener("click",()=>{ MF.hidden=true; mfSave(); $("miniFT").hidden=true; });
+$("mfTime").addEventListener("click",()=>{ if(MFD.moved) return; if(readerIsOpen()) readerClose(); setTab("focus"); });
+// dragging (mouse, trackpad and touch)
+const MFD={on:false,moved:false,dx:0,dy:0,sx:0,sy:0};
+$("miniFT").addEventListener("pointerdown",e=>{ if(e.button>0) return; const el=$("miniFT"), r=el.getBoundingClientRect();
+  MFD.on=true; MFD.moved=false; MFD.sx=e.clientX; MFD.sy=e.clientY; MFD.dx=e.clientX-r.left; MFD.dy=e.clientY-r.top; });
+// the move/up listeners are on the window, so a quick drag that leaves the timer still follows the pointer
+window.addEventListener("pointermove",e=>{ if(!MFD.on) return; if(!MFD.moved&&Math.hypot(e.clientX-MFD.sx,e.clientY-MFD.sy)<5) return;
+  const el=$("miniFT"); if(!MFD.moved){ MFD.moved=true; el.classList.add("drag"); }
+  MF.x=(e.clientX-MFD.dx)/window.innerWidth; MF.y=(e.clientY-MFD.dy)/window.innerHeight; mfPlace(); });
+function mfDrop(){ if(!MFD.on) return; MFD.on=false; $("miniFT").classList.remove("drag");
+  if(MFD.moved){ mfSave(); setTimeout(()=>{ MFD.moved=false; },0); } }
+window.addEventListener("pointerup",mfDrop); window.addEventListener("pointercancel",mfDrop);
+// a drag that ends on a button shouldn't also press it
+$("miniFT").addEventListener("click",e=>{ if(MFD.moved){ e.stopPropagation(); e.preventDefault(); } },true);
+window.addEventListener("resize",mfPlace);
+
+// ---------- reader: notebook PDFs and pictures open inside the app ----------
+const RDR={url:"",blob:"",name:"",n:0};
+function readerType(name){ const x=(String(name).split(".").pop()||"").toLowerCase();
+  return x==="pdf"?"application/pdf":x==="png"?"image/png":x==="jpg"||x==="jpeg"?"image/jpeg":x==="gif"?"image/gif":x==="webp"?"image/webp":x==="txt"?"text/plain;charset=utf-8":""; }
+function readerCan(name){ return !!readerType(name); }
+async function readerOpen(url,name){ const n=++RDR.n; readerFree(); RDR.url=url; RDR.name=name||"";
+  $("rdrName").textContent=RDR.name; $("rdrWait").hidden=false; $("rdrFrame").src="about:blank"; $("reader").hidden=false; readerFocusBtn();
+  let src=url; // a local copy shows PDFs inline everywhere (the file's own link may ask to download it)
+  try{ const r=await fetch(url); if(!r.ok) throw new Error(r.status); const b=await r.blob(); if(n!==RDR.n) return;
+    RDR.blob=URL.createObjectURL(new Blob([b],{type:readerType(name)||b.type})); src=RDR.blob; }catch(_){ if(n!==RDR.n) return; }
+  $("rdrFrame").src=src; $("rdrWait").hidden=true; }
+function readerFree(){ if(RDR.blob){ const b=RDR.blob; RDR.blob=""; setTimeout(()=>{ try{ URL.revokeObjectURL(b); }catch(_){} },1000); } }
+function readerClose(){ if(!readerIsOpen()) return; RDR.n++; $("reader").hidden=true; $("rdrFrame").src="about:blank"; readerFree(); }
+function readerFocusBtn(){ const b=$("rdrFocus"); if(b) b.hidden=mfActive(); }
+$("rdrClose").addEventListener("click",readerClose);
+$("rdrOut").addEventListener("click",()=>{ if(RDR.url) window.open(RDR.url,"_blank"); });
+$("rdrFocus").addEventListener("click",()=>{ if(FT.mode!=="focus"){ FT.mode="focus"; FT.cred=0; FT.left=ftLen("focus"); } ftStart(); MF.hidden=false; mfSave(); readerFocusBtn(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&readerIsOpen()){ e.preventDefault(); e.stopPropagation(); readerClose(); } },true);
+setInterval(()=>{ if(readerIsOpen()) readerFocusBtn(); },1000);
+// handy for checking the mini timer and reader from the console
+window.__mochiTest={MF,MFD,readerOpen,readerClose,readerIsOpen,readerCan,mfActive};
 // ---------- Mochi's outfits (drawn on top of every cat sprite) ----------
 var WEAR={
   hat:{
@@ -7275,7 +7422,7 @@ let lastDay=ymd(today());
 setInterval(()=>{const k=ymd(today());if(k!==lastDay){lastDay=k;render()} $("greet").textContent=greetText(); resolveTheme(); if(curTab==="home") renderHome();},60000);
 (async()=>{
   if(!db){ db=await cloudConnect();
-    if(db){ try{ if(await db.empty()&&(state.assignments.length||state.living||state.kitchen||state.chores||state.extras||Object.keys(state.notes||{}).length)){ await writeAllDocs(allDocs()); toast("Uploaded what was saved in this browser ✿"); } }catch(e){ toast("Couldn't reach the cloud. Saving in this browser for now."); db=null; } } }
+    if(db){ try{ if(await db.empty()&&(state.assignments.length||state.living||state.kitchen||state.chores||state.extras||Object.keys(state.notes||{}).length)){ await writeAllDocs(allDocs()); localSynced(); toast("Uploaded what was saved in this browser ✿"); } else if(await mergeLocalIntoCloud()) toast("Synced what was saved on this device ✿"); }catch(e){ toast("Couldn't reach the cloud. Saving in this browser for now."); db=null; } } }
   if(!db){ hideLoader(); const b=$("saveBanner"); b.innerHTML=CLOUD.on?`Saved in this browser only. <button type="button" class="ghost" data-open="cloudPanel" style="padding:2px 10px">Sign in to sync</button>`:"Changes are saved in this browser only."; b.hidden=false; return; }
   db.collection("assignments").onSnapshot(s=>{state.assignments=s.docs.map(d=>({id:d.id,...d.data()}));render();hideLoader()},()=>{toast("Lost connection to saved data");hideLoader()});
   db.doc("living/main").onSnapshot(s=>{ state.living=s.exists?JSON.parse(JSON.stringify(s.data())):null; render(); const act=document.activeElement; if(act&&act.closest&&act.closest("#bkForm,#knForm,[data-knnote]")) return; renderActiveTab(); });
