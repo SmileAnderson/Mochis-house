@@ -1,5 +1,5 @@
 name: Publish website
-# Serves the finished page (index.html + music) on https://mochishouse.app
+# Serves the finished site (index.html, privacy page, phone-app files, music, lib) on https://mochishouse.app
 on:
   push:
     branches: [main]
@@ -19,7 +19,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir site && cp index.html site/ && for d in music lib; do if [ -d $d ]; then cp -r $d site/; fi; done
+      - run: |
+          mkdir site && cp index.html site/
+          for f in privacy.html manifest.webmanifest sw.js; do if [ -f $f ]; then cp $f site/; fi; done
+          for d in music lib; do if [ -d $d ]; then cp -r $d site/; fi; done
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
