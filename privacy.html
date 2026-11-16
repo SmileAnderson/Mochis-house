@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Privacy · Mochi's House</title>
+<meta name="description" content="What Mochi's House saves, where it's kept, and how to delete it.">
+<link rel="icon" type="image/png" href="lib/icon-128.png">
+<style>
+  @font-face{font-family:'Bricolage Grotesque';font-weight:200 800;font-display:swap;src:url(lib/fonts/bricolage-grotesque-latin-opsz-normal.woff2) format('woff2')}
+  @font-face{font-family:'Instrument Serif';font-style:italic;font-display:swap;src:url(lib/fonts/instrument-serif-latin-400-italic.woff2) format('woff2')}
+  :root{--bg:#FFF4F8;--paper:#FFFFFF;--ink:#3A2233;--soft:#7E5A6E;--rose:#D63F7E;--line:#F3CFDF}
+  @media (prefers-color-scheme:dark){:root{--bg:#24161F;--paper:#2F1E29;--ink:#F7E6EE;--soft:#C9A9BA;--rose:#FF8DBA;--line:#4A3040}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 'Bricolage Grotesque',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
+  main{max-width:720px;margin:0 auto;padding:40px 16px 64px}
+  h1{font-size:clamp(32px,7vw,48px);line-height:1.05;margin:0 0 6px;letter-spacing:-.03em}
+  h1 em{font-family:'Instrument Serif',serif;font-weight:400;color:var(--rose)}
+  h2{font-size:20px;margin:32px 0 6px;letter-spacing:-.01em}
+  p,li{color:var(--ink)} .soft{color:var(--soft);font-size:14px}
+  ul{padding-left:20px} li{margin:4px 0}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px 18px;margin:18px 0}
+  a{color:var(--rose)}
+</style>
+<main>
+  <p class="soft"><a href="./">← Back to Mochi's House</a></p>
+  <h1>Privacy <em>in plain words</em></h1>
+  <p class="soft">Last updated: November 2026</p>
+
+  <div class="card">
+    <b>The short version:</b> Mochi's House has no ads, no tracking and no analytics, and sets no cookies.
+    Without an account, everything stays in your browser. With an account, your planner is kept in our database
+    so it can sync, only you can see it, and you can delete it any time.
+  </div>
+
+  <h2>Who runs it</h2>
+  <p>Mochi's House is a small independent project run by Alexandra. Questions about your data, or anything else: email <a href="mailto:help@mochishouse.app">help@mochishouse.app</a>,
+    or use <b>Settings → Help</b> in the app.</p>
+
+  <h2>Without an account</h2>
+  <p>Your planner, recipes, notes, moods and settings are saved in your browser's own storage on your device. They never leave it,
+    unless you download a backup file yourself. Clearing your browser's site data deletes them.</p>
+
+  <h2>With an account (sync)</h2>
+  <ul>
+    <li><b>Your email address and password.</b> Used only to sign you in and to send sign-in or password emails. Passwords are stored scrambled (hashed), never readable.</li>
+    <li><b>Your planner.</b> Everything you'd otherwise keep in the browser (assignments, grades, recipes, chores, books, notes, moods, sleep, settings) is copied to our database so your devices stay in sync.</li>
+    <li><b>Your files.</b> Pattern PDFs and pictures you add to notes, in a private folder only your account can open.</li>
+    <li><b>Mochi's Land.</b> If you add neighbours, they can see your house name, your pet, its outfit and your house colours, plus notes, treats and pets you send them. Nothing else from your planner.</li>
+  </ul>
+  <p>Our database and sign-in run on <b>Supabase</b>. The rules in the database only let each account read and change its own data.</p>
+
+  <h2>Feedback</h2>
+  <p>When you send feedback we get your message, the app version and, only if you type one, an email address to reply to.</p>
+
+  <h2>Outside services the app talks to</h2>
+  <ul>
+    <li><b>Open-Meteo</b> (weather): the city you search for, and its rounded location to fetch the forecast.</li>
+    <li><b>Open Library</b> (books): what you type when you search for a book, and the book covers it shows.</li>
+    <li><b>GitHub Pages</b> hosts this website, and like any web host it sees visitors' IP addresses in its server logs.</li>
+    <li><b>Spotify</b> (desktop app only): the app asks the Spotify app on your own computer what's playing. Nothing is sent anywhere.</li>
+  </ul>
+  <p>Fonts, the sign-in library and the PDF reader are served from this website itself, so loading the page doesn't tell any other company you visited.</p>
+
+  <h2>Cookies</h2>
+  <p>Mochi's House sets no cookies. It uses your browser's storage only for things it needs to work: your saved planner and keeping you signed in.
+    That's why there's no cookie banner.</p>
+
+  <h2>Your choices and rights</h2>
+  <ul>
+    <li><b>See or take your data:</b> Settings → Account &amp; sync → <b>Download a backup</b> gives you everything in one file.</li>
+    <li><b>Delete it:</b> Settings → Account &amp; sync → <b>Delete my account</b> deletes your account and everything synced to it straight away.</li>
+    <li><b>Correct it:</b> change anything in the app, or email <a href="mailto:help@mochishouse.app">help@mochishouse.app</a>.</li>
+    <li>If you live in the EU you can also complain to your data protection authority (in Austria, the Datenschutzbehörde).</li>
+  </ul>
+  <p>We keep your synced data while you have an account and delete it when you delete the account.</p>
+</main>
+</html>
